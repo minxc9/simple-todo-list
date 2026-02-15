@@ -147,6 +147,21 @@ describe('Todo API Endpoints', () => {
       expect(response.body.completed).toBe(false);
     });
 
+    test('should update todo text when provided', async () => {
+      const createResponse = await request(app)
+        .post('/api/todos')
+        .send({ text: 'Original text' });
+
+      const todoId = createResponse.body.id;
+
+      const response = await request(app)
+        .put(`/api/todos/${todoId}`)
+        .send({ text: 'Updated text' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('text', 'Updated text');
+    });
+
     test('should return 404 if todo not found', async () => {
       const response = await request(app)
         .put('/api/todos/999999');

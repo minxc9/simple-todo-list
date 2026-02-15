@@ -111,6 +111,7 @@ function renderTodos() {
                     onchange="toggleTodo(${todo.id})"
                 />
                 <span class="todo-text">${escapeHtml(todo.text)}</span>
+                <button class="edit-btn" onclick="editTodo(${todo.id})">Edit</button>
                 <button class="delete-btn" onclick="deleteTodo(${todo.id})">Delete</button>
             </div>
         `).join('');
@@ -118,6 +119,38 @@ function renderTodos() {
     
     updateStats();
 }
+
+async function editTodo(id) {
+    const newText = prompt("Edit todo:");
+    if (newText === null) return; // user cancelled
+    const text = newText.trim();
+    if (!text) return;
+
+    try {
+        const response = await fetch(`/api/todos/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        });
+
+        if (response.ok) {
+            const updatedTodo = await response.json();
+            const index = todos.findIndex(t => t.id === id);
+            if (index !== -1) {
+                todos[index] = updatedTodo;
+                renderTodos();
+            } else {
+                fetchTodos();
+            }
+        } else {
+            alert('Failed to edit todo');
+        }
+    } catch (error) {
+        console.error('Error editing todo:', error);
+        alert('Failed to edit todo');
+    }
+}
+
 
 // Update statistics
 function updateStats() {

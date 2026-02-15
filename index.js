@@ -40,6 +40,9 @@ function writeTodos(todos) {
   }
 }
 
+// (Removed duplicate/invalid PUT handler) -- single PUT defined below handles both edits and toggles
+
+
 // API Routes
 
 // Get all todos
@@ -76,15 +79,24 @@ app.post('/api/todos', (req, res) => {
 // Toggle todo completion
 app.put('/api/todos/:id', (req, res) => {
   const id = parseInt(req.params.id);
+  const { text } = req.body || {};
   const todos = readTodos();
   const todoIndex = todos.findIndex(t => t.id === id);
-  
+
   if (todoIndex === -1) {
     return res.status(404).json({ error: 'Todo not found' });
   }
-  
-  todos[todoIndex].completed = !todos[todoIndex].completed;
-  
+
+  if (text !== undefined) {
+    const trimmed = String(text).trim();
+    if (trimmed === '') {
+      return res.status(400).json({ error: 'Todo text is required' });
+    }
+    todos[todoIndex].text = trimmed;
+  } else {
+    todos[todoIndex].completed = !todos[todoIndex].completed;
+  }
+
   if (writeTodos(todos)) {
     res.json(todos[todoIndex]);
   } else {
